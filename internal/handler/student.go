@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"io"
@@ -89,8 +90,41 @@ func (s Student) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, stu)
 }
 
+func (s Student) Delete(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	if err := s.Store.Delete(ctx, id); err != nil {
+		var errNotFound store.StudentNotFoundError
+
+		if ok := errors.As(err, &errNotFound); ok {
+			s.Logger.Error("student not found", zap.Error(err))
+
+			return echo.ErrNotFound
+		}
+
+		return echo.ErrInternalServerError
+	}
+
+	s.Logger.Info("student deletion success")
+
+	type responseMsg struct {
+		Message string `json:"message"`
+	}
+
+	m := responseMsg{
+		Message: fmt.Sprintf("student with id %d successfuly deleted", id),
+	}
+
+	return c.JSON(http.StatusOK, &m)
+}
+
 func (s Student) Register(g *echo.Group) {
 	g.GET("", s.GetAll)
 	g.GET("/:id", s.Get)
 	g.POST("", s.Create)
+	g.DELETE("/:id", s.Delete)
 }

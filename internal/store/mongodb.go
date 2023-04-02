@@ -83,3 +83,15 @@ func (store *StudentSMongoDB) GetAll(ctx context.Context) ([]model.Student, erro
 
 	return students, nil
 }
+
+func (store *StudentSMongoDB) Delete(ctx context.Context, id uint64) error {
+	res, err := store.collection.DeleteOne(ctx, bson.M{"id": id})
+	if err != nil {
+		return fmt.Errorf("cannot read from database %w", err)
+	}
+	if res.DeletedCount == 0 {
+		return StudentNotFoundError{ID: id}
+	}
+
+	return nil
+}

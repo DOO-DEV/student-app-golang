@@ -42,3 +42,13 @@ func (m *StudentInMemory) GetAll(_ context.Context) ([]model.Student, error) {
 
 	return ss, nil
 }
+
+func (m *StudentInMemory) Delete(_ context.Context, id uint64) error {
+	if _, ok := m.students[id]; !ok {
+		return StudentNotFoundError{ID: id}
+	}
+
+	delete(m.students, id)
+
+	return nil
+}

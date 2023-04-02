@@ -26,4 +26,5 @@ type Students interface {
 	Save(context.Context, model.Student) error
 	Get(context.Context, uint64) (model.Student, error)
 	GetAll(context.Context) ([]model.Student, error)
+	Delete(context.Context, uint64) error
 }
